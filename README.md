@@ -1,4 +1,4 @@
-# QEntre - QR Code Ticket API 🎫
+# QR Code Ticket API 🎫
 
 API robusta desenvolvida em Node.js para geração de ingressos digitais com QR Code e códigos de contingência legíveis. O projeto foi otimizado para rodar em ambientes conteinerizados (Docker) com foco em alta performance e baixo consumo de recursos.
 
@@ -53,28 +53,23 @@ Para rodar o teste de carga novamente:
 pnpm exec tsx test-load.ts
 ```
 
-## Endpoints Principais
+## 🟢 Endpoints Principais
 
  - `GET /preview/:id` - Visualização HTML do ingresso.
  - `GET /simular-ticket` - Endpoint otimizado para testes de carga (retorna JSON).
 
-## Estrátegia de escabilidade
-```bash
-2. Escalonamento por Réplicas (Nativo do Coolify)
-O Coolify permite que você defina o número de "Instâncias" (Replicas) de um serviço.
+## 💡 Estrátegia de escabilidade
 
-Como funciona: O Coolify sobe 2, 3 ou 10 containers idênticos da sua imagem Docker.
+### Escalonamento por Réplicas (Nativo do Coolify)
 
-Load Balancer: O Coolify usa o Traefik (um balanceador de carga poderoso) como porta de entrada. Ele recebe o tráfego na porta 80/443 e distribui para os seus containers.
+- O Coolify permite que você defina o número de "Instâncias" (Replicas) de um serviço.
+- O Coolify sobe 2, 3 ou 10 containers idênticos da sua imagem Docker.
+- Load Balancer: O Coolify usa o Traefik como porta de entrada. Ele recebe o tráfego na porta 80/443 e distribui para os seus containers.
 
-Dica de Ouro: Se você usar essa opção, pode remover o PM2 e usar o node dist/server.js simples. É melhor ter 4 containers pequenos gerenciados pelo Coolify do que 1 container gigante com 4 processos PM2 dentro, pois o Coolify consegue monitorar a saúde de cada container individualmente.
+### Escalonamento por Filas (Background Jobs) - A "Prova de Balas"
 
-3. Escalonamento por Filas (Background Jobs) - A "Prova de Balas"
-Para um sistema de ingressos, o maior perigo não é a CPU, mas sim o bloqueio. Se 10.000 pessoas tentarem gerar QR Codes ao mesmo tempo, a API pode ficar lenta para quem quer apenas validar um ingresso na porta.
+- Para um sistema de ingressos, o maior perigo não é a CPU, mas sim o bloqueio. Se 10.000 pessoas tentarem gerar QR Codes ao mesmo tempo, a API pode ficar lenta para quem quer apenas validar um ingresso na porta.
 
-A solução profissional no Coolify é:
-
-API Service: Recebe o pedido e apenas salva no banco.
-
-Worker Service: Um container separado que fica "escutando" uma fila (Redis). Ele gera o QR Code e envia o e-mail sem pressa, sem travar a API principal.
-```
+  A solução profissional no Coolify é:
+- API Service: Recebe o pedido e apenas salva no banco.
+- Worker Service: Um container separado que fica "escutando" uma fila (Redis). Ele gera o QR Code e envia o e-mail sem pressa, sem travar a API principal.
